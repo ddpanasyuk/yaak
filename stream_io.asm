@@ -32,12 +32,39 @@ k_read:;read(FILE* f_ptr, char* buff, u32int len);
 	mov ebp, esp
 	cmp dword [ebp + 8], 0; is it stdin
 	je k_read_stdin
-	jmp k_read_end
+	;jmp k_read_end
+	;else, read from another file
+	
+	push ebx
+	push edi
+	xor ecx, ecx
+	k_read_file_loop:
+	  cmp ecx, dword [ebp + 16]
+	  je k_read_file_end
+	  
+	  ;mov edx, [ebp + 12]
+	  mov eax, [ebp + 8];file pointer
+	  mov edi, [eax + 4];address
+	  
+	  mov edx, [eax + 8];offset
+	  mov bl,  [edi + edx]
+	  
+	  mov edx, [ebp + 12]
+	  mov [edx + ecx], bl
+	  
+	  inc ecx
+	  inc dword [eax + 8]
+	  jmp k_read_file_loop
+	k_read_file_end:
+	  pop edi
+	  pop ebx
+	  jmp k_read_end
+	
 	
 	k_read_stdin:
 	push ecx
 	xor ecx, ecx
-	k_read_loop:
+	k_read_stdin_loop:
 		cmp ecx, dword [ebp + 16]
 		je k_read_stdin_end
 		mov edx, [ebp + 12]
@@ -45,7 +72,7 @@ k_read:;read(FILE* f_ptr, char* buff, u32int len);
 		call k_getchar
 		mov [edx], al
 		inc ecx
-		jmp k_read_loop
+		jmp k_read_stdin_loop
 	k_read_stdin_end:
 	pop ecx
 k_read_end:

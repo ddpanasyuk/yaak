@@ -74,8 +74,65 @@ file_parse_end:
     pop ebp
     ret
     
-k_open:
+k_open:;k_open(char* name), return pointer to file struct
+  push ebp
+  mov ebp, esp
+
+  mov eax, [file_sys_location]
+  add eax, 4
+  mov [file_sys_curr_offset], eax;set search
+    
   
+  push esi
+  mov esi, [ebp + 8];filename
+  push ebx
+  xor ecx, ecx
+  k_open_find_loop:
+    cmp ecx, [file_sys_famount]
+    je k_open_not_found;if file not found
+    inc ecx
+    
+    mov eax, [file_sys_curr_offset];string
+    add eax, 4
+    push eax
+    push esi
+    call strcmp
+    add esp, 8
+    cmp eax, 0
+    je k_open_found; if found
+    ;else increment
+    mov eax, [file_sys_curr_offset]
+    mov edx, [eax]
+    add edx, 16
+    add [file_sys_curr_offset], edx
+    jmp k_open_find_loop
+    
+    k_open_not_found:
+      mov eax, 0
+    jmp k_open_end
+    k_open_found:
+      ;found file- create file structure and return pointer
+      push dword 16;16 byte file struct
+      call k_sbrk
+      add esp, 4
+      mov edx, [file_sys_curr_offset]
+      mov ebx, [edx]
+      mov [eax], ebx;size of the file
+
+      add edx, 4
+      mov [eax + 16], edx
+      
+      mov edx, [file_sys_curr_offset]
+      add edx, 16
+      mov [eax + 4], edx
+      mov [eax + 8], dword 0
+      mov [eax + 12], dword 0
+    
+k_open_end:
+  pop ebx
+  pop esi
+  pop ebp
+  ret
 
 k_close:
   ret  
@@ -84,7 +141,7 @@ k_close:
 ;u32int address
 ;u32int current_offset
 ;u32int attrib
-;char name[12]
+;u32int pointer_to_str
   
   
   

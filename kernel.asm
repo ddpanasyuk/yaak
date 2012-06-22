@@ -38,11 +38,31 @@ push ebx
 	push dword [eax]
 	call file_sys_parse
 	add esp, 4
+	push test_msg
+	call k_open
+	add esp, 4
+	push eax
+	push dword [eax]
+	call k_sbrk
+	add esp, 4
+	pop edx
+	push dword [edx]
+	push eax
+	push edx
+	call k_read
+	add esp, 4
+	pop eax
+	add esp, 4
+	push eax
+	push print_msg
+	call k_putstr
+	add esp, 4
+	call k_putstr
 	jmp $ 
 		
 boot_message: db "YAAK v0.01", 0x0A, 0x0
-test_msg: db "hello", 0x0
-test_msg_two: db "hellp", 0x0
+test_msg: db "string.asm", 0x0
+print_msg: db "Printing contents of file compile.sh: ", 0x0A, 0
 %include  "print.asm"
 %include  "tables.asm"
 %include  "sys_call.asm"
